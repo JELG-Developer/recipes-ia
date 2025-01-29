@@ -8,6 +8,9 @@ import jakarta.validation.constraints.NotNull;
 @Schema(description = "Update User Request")
 public class UpdateUserRequest {
 
+    @NotNull(message = "The field id cannot be empty")
+    private Long id;
+
     @NotNull(message = "The field name cannot be empty")
     @Schema(description = "User Name", required = true, example = "Juan")
     private String name;

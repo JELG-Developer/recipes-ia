@@ -3,8 +3,8 @@ package recetasya.com.msvc_user.mapper.response;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import recetasya.com.msvc_user.service.entities.User;
+
 @Data @NoArgsConstructor @AllArgsConstructor @SuperBuilder
 public class UserResponse {
 
