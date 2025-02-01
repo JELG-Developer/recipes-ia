@@ -35,7 +35,7 @@ public class UserController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateUserRequest.class)))
     @ApiResponse(responseCode = "400", description = "Username or email already exists")
     public ResponseEntity <StandardResponse> saveUser(@RequestBody CreateUserRequest request) throws UserException{        
-        return ResponseEntity.ok(userService.save(request));
+        return ResponseEntity.ok(userService.saveUser(request));
     }
 
     @PutMapping("/update")
