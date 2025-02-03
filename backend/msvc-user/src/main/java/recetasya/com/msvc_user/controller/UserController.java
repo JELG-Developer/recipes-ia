@@ -16,7 +16,8 @@ import recetasya.com.msvc_user.mapper.response.*;
 import recetasya.com.msvc_user.service.UserService;
 import recetasya.com.msvc_user.service.exception.UserException;
 
-@RestController("/user")
+@RestController
+@RequestMapping("/api/user")
 public class UserController {
 
     @Autowired

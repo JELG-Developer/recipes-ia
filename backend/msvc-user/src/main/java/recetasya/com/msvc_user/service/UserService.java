@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import recetasya.com.msvc_user.service.entities.*;
 import recetasya.com.msvc_user.mapper.request.*;
@@ -25,6 +26,9 @@ public class UserService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private ModelMapper modelMapper = new ModelMapper();
 
@@ -64,6 +68,7 @@ public class UserService {
         }
 
         user.setRole(userRole);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);        
 
         return new StandardResponse(200, "User created", user.getId());
@@ -89,6 +94,7 @@ public class UserService {
             userRole = new Role();
             userRole.setName("ROLE_ADMIN");
             userRole.setDescription("Default role for new admins");
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             roleRepository.save(userRole);
         }
 
