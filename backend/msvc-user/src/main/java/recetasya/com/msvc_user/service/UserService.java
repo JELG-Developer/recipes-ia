@@ -44,7 +44,7 @@ public class UserService {
         return UserResponse.fromUser(user);
     }
 
-    public StandardResponse saveUser(CreateUserRequest request) throws UserException {
+    public StandardResponse createUser(CreateUserRequest request) throws UserException {
 
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new UserException("Username already exists", 400);
@@ -53,29 +53,26 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email already exists", 400);
         }
-
+    
         User user = modelMapper.map(request, User.class);
-
-        Optional<Role> userRoleOptional = roleRepository.findByName("Usuario");
-        Role userRole;
-        if (userRoleOptional.isPresent()) {
-            userRole = userRoleOptional.get();
-        } else {
-            userRole = new Role();
-            userRole.setName("ROLE_USER");
-            userRole.setDescription("Default role for new users");
-            roleRepository.save(userRole);
-        }
-
-        user.setRole(userRole);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);        
-
+    
+        Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setName("ROLE_USER");
+                    newRole.setDescription("Default role for new users");
+                    return roleRepository.save(newRole);
+                });
+    
+        user.setRoles(Collections.singleton(userRole));
+        userRepository.save(user);
+    
         return new StandardResponse(200, "User created", user.getId());
     }
-
-    public StandardResponse saveAdmin(CreateUserRequest request) throws UserException {
-
+    
+    public StandardResponse createAdmin(CreateUserRequest request) throws UserException {
+    
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new UserException("Username already exists", 400);
         }
@@ -83,25 +80,28 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email already exists", 400);
         }
-
+    
         User user = modelMapper.map(request, User.class);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+    
+        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setName("ROLE_ADMIN");
+                    newRole.setDescription("Default role for new admins");
+                    return roleRepository.save(newRole);
+                });
+    
+        user.setRoles(Collections.singleton(adminRole));
+        userRepository.save(user);
+    
+        return new StandardResponse(200, "Admin created", user.getId());
+    }
 
-        Optional<Role> userRoleOptional = roleRepository.findByName("Usuario");
-        Role userRole;
-        if (userRoleOptional.isPresent()) {
-            userRole = userRoleOptional.get();
-        } else {
-            userRole = new Role();
-            userRole.setName("ROLE_ADMIN");
-            userRole.setDescription("Default role for new admins");
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            roleRepository.save(userRole);
-        }
-
-        user.setRole(userRole);
-        userRepository.save(user);        
-
-        return new StandardResponse(200, "User created", user.getId());
+    public UserResponse getByUsername(FindUsernameRequest request) throws UserException {
+        log.info("Getting user by username");
+        User user = userRepository.findByUsername(request.getUsername()).orElseThrow(() -> new UserException("User not found", 404));
+        return UserResponse.fromUser(user);
     }
 
     public StandardResponse update(UpdateUserRequest request) throws UserException {

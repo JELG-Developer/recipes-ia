@@ -30,13 +30,40 @@ public class UserController {
         return ResponseEntity.ok(userService.getAll());
     }
 
-    @PostMapping("/save")
-    @Operation(summary = "save user")
-    @ApiResponse(responseCode = "200", description = "Save user",
+    @PostMapping("/find")
+    @Operation(summary = "find user by id")
+    @ApiResponse(responseCode = "200", description = "Find user by id",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FindIdRequest.class)))
+    @ApiResponse(responseCode = "404", description = "User not found")
+    public ResponseEntity <UserResponse> findUserById(@RequestBody FindIdRequest request) throws UserException{        
+        return ResponseEntity.ok(userService.getById(request));
+    }
+
+    @PostMapping("/find/username")
+    @Operation(summary = "find user by username")
+    @ApiResponse(responseCode = "200", description = "Find user by username",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FindUsernameRequest.class)))
+    @ApiResponse(responseCode = "404", description = "User not found")
+    public ResponseEntity <UserResponse> findUserByUsername(@RequestBody FindUsernameRequest request) throws UserException{        
+        return ResponseEntity.ok(userService.getByUsername(request));
+    }
+
+    @PostMapping("/create/user")
+    @Operation(summary = "create user")
+    @ApiResponse(responseCode = "200", description = "Create user",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateUserRequest.class)))
     @ApiResponse(responseCode = "400", description = "Username or email already exists")
-    public ResponseEntity <StandardResponse> saveUser(@RequestBody CreateUserRequest request) throws UserException{        
-        return ResponseEntity.ok(userService.saveUser(request));
+    public ResponseEntity <StandardResponse> createUser(@RequestBody CreateUserRequest request) throws UserException{        
+        return ResponseEntity.ok(userService.createUser(request));
+    }
+
+    @PostMapping("/create/admin")
+    @Operation(summary = "create admin")
+    @ApiResponse(responseCode = "200", description = "Create admin",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateUserRequest.class)))
+    @ApiResponse(responseCode = "400", description = "Username or email already exists")
+    public ResponseEntity <StandardResponse> createAdmin(@RequestBody CreateUserRequest request) throws UserException{        
+        return ResponseEntity.ok(userService.createAdmin(request));
     }
 
     @PutMapping("/update")

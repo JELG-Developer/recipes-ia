@@ -1,12 +1,10 @@
-package recetasya.com.msvc_user.service.entities;
+package recetasya.com.msvc_auth.entitites;
 
 import lombok.*;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import java.util.Set;
 
-@Entity
-@Getter @Setter
+@Entity @Getter @Setter
 @Table(name = "RY_USER")
 public class User {
 
@@ -14,7 +12,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, length = 50, nullable = false)
+    @Column(unique = true, length = 50)
     private String username;
 
     @Column(length = 50)
@@ -25,19 +23,14 @@ public class User {
 
     @Column(length = 3)
     private int age;
-
-    @Column(unique = true, length = 50, nullable = false)
+    
+    @Column(unique = true, length = 50)
     private String email;
 
-    @Column(nullable = false)
     private String password;
 
-    @ManyToMany
-    @JoinTable(
-        name = "RY_USER_ROLE",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @OneToOne(mappedBy = "user")
     @JsonManagedReference
-    private Set<Role> roles;
+    private Role role;
+
 }
