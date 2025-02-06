@@ -1,0 +1,77 @@
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 6
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 20s
+        permitted-number-of-calls-in-half-open-state: 4
+        slow-call-duration-threshold: 3s
+        slow-call-rate-threshold: 50
+    instances:
+      users:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 3s
+    instances:
+      users:
+        base-config: default
+
+spring:
+  application:
+    name: msvc-auth
+  datasource:
+    url: jdbc:mysql://localhost:3306/recipes_ia
+    username: root
+    password: sasa
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${IP_ADDR:http://127.0.0.1:8002}
+      client:
+        registration:
+          client-app:
+            provider: spring
+            client-id: gateway-app
+            client-secret: 12345
+            authorization-grant-type: authorization_code
+            redirect-uri: http://127.0.0.1:8090/authorized
+            scope:
+              - openid
+              - profile
+            client-name: client-app
+        provider:
+          spring:
+            issuer-uri: ${IP_ADDR:http://127.0.0.1:8002}
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: msvc-auth
+            uri: lb://msvc-auth
+            predicates:
+              - Path=/api/auth/**
+            filters:
+              - StripPrefix=2
+          - id: msvc-user
+            uri: lb://msvc-user
+            predicates:
+              - Path=/api/user/**
+            filters:
+              - StripPrefix=2
+
+server:
+  port: 8002
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    instance-id: ${spring.cloud.client.hostname}:${spring.application.name}:${random.value}
