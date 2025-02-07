@@ -39,13 +39,13 @@ public class UserController {
         return ResponseEntity.ok(userService.getById(request));
     }
 
-    @PostMapping("/find/username")
-    @Operation(summary = "find user by username")
-    @ApiResponse(responseCode = "200", description = "Find user by username",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FindUsernameRequest.class)))
+    @PostMapping("/find/mail")
+    @Operation(summary = "find user by mail")
+    @ApiResponse(responseCode = "200", description = "Find user by mail",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FindMailRequest.class)))
     @ApiResponse(responseCode = "404", description = "User not found")
-    public ResponseEntity <UserResponse> findUserByUsername(@RequestBody FindUsernameRequest request) throws UserException{        
-        return ResponseEntity.ok(userService.getByUsername(request));
+    public ResponseEntity <UserResponse> findUserByMail(@RequestBody FindMailRequest request) throws UserException{        
+        return ResponseEntity.ok(userService.getByMail(request));
     }
 
     @PostMapping("/create/user")

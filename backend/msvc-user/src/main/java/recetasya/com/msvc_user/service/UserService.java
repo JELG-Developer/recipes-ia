@@ -45,10 +45,6 @@ public class UserService {
     }
 
     public StandardResponse createUser(CreateUserRequest request) throws UserException {
-
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserException("Username already exists", 400);
-        }
     
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email already exists", 400);
@@ -73,10 +69,6 @@ public class UserService {
     
     public StandardResponse createAdmin(CreateUserRequest request) throws UserException {
     
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserException("Username already exists", 400);
-        }
-    
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email already exists", 400);
         }
@@ -98,9 +90,9 @@ public class UserService {
         return new StandardResponse(200, "Admin created", user.getId());
     }
 
-    public UserResponse getByUsername(FindUsernameRequest request) throws UserException {
+    public UserResponse getByMail(FindMailRequest request) throws UserException {
         log.info("Getting user by username");
-        User user = userRepository.findByUsername(request.getUsername()).orElseThrow(() -> new UserException("User not found", 404));
+        User user = userRepository.findByEmail(request.getMail()).orElseThrow(() -> new UserException("User not found", 404));
         return UserResponse.fromUser(user);
     }
 

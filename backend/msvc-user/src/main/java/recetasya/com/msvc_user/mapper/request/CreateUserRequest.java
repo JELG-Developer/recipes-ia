@@ -20,10 +20,6 @@ public class CreateUserRequest {
     @Schema(description = "User Age", required = true, example = "25")
     private int age;
 
-    @NotNull(message = "The field username cannot be empty")
-    @Schema(description = "User Username", required = true, example = "juanperez")
-    private String username;
-
     @NotNull(message = "The field email cannot be empty")
     @Schema(description = "User Email", required = true, example = "juan@mail")
     private String email;

@@ -20,9 +20,6 @@ public class UserResponse {
     @Schema(description = "age", example = "30", type = "int")
     protected int age;
 
-    @Schema(description = "username", example = "johndoe", type = "String")
-    protected String username;
-
     @Schema(description = "email", example = "john@mail", type = "String")
     protected String email;    
 
@@ -32,7 +29,6 @@ public class UserResponse {
             .name(user.getName())
             .lastname(user.getLastname())
             .age(user.getAge())
-            .username(user.getUsername())
             .email(user.getEmail())
             .build();
     }

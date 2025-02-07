@@ -25,10 +25,10 @@ public class AuthService {
 
     public AuthResponse authenticate(AuthRequest request) throws JOSEException {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
-        String accessToken = jwtUtil.generateAccessToken(request.getUsername());
-        String refreshToken = jwtUtil.generateAccessToken(request.getUsername());
+        String accessToken = jwtUtil.generateAccessToken(request.getEmail());
+        String refreshToken = jwtUtil.generateAccessToken(request.getEmail());
 
         return new AuthResponse(accessToken, refreshToken);
     }
