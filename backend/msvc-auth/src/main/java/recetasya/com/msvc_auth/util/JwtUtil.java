@@ -5,6 +5,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,27 +18,15 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private static final long ACCESS_TOKEN_VALIDITY = 5 * 60 * 1000; // 5 minutos
-    private static final long REFRESH_TOKEN_VALIDITY = 7 * 24 * 60 * 60 * 1000; // 7 días
+    @Value("${jwt.expiration}")
+    private long expirationTime;
 
     public String generateAccessToken(String username) throws JOSEException {
         JWSSigner signer = new MACSigner(secretKey.getBytes());
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(username)
                 .issueTime(new Date())
-                .expirationTime(new Date(System.currentTimeMillis() + ACCESS_TOKEN_VALIDITY))
-                .build();
-        SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
-        signedJWT.sign(signer);
-        return signedJWT.serialize();
-    }
-
-    public String generateRefreshToken(String username) throws JOSEException {
-        JWSSigner signer = new MACSigner(secretKey.getBytes());
-        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(username)
-                .issueTime(new Date())
-                .expirationTime(new Date(System.currentTimeMillis() + REFRESH_TOKEN_VALIDITY))
+                .expirationTime(new Date(System.currentTimeMillis() + (expirationTime * 60 * 1000))) // Convierte minutos a ms
                 .build();
         SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
         signedJWT.sign(signer);
@@ -48,13 +37,18 @@ public class JwtUtil {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
             JWSVerifier verifier = new MACVerifier(secretKey.getBytes());
-            return signedJWT.verify(verifier);
+            return signedJWT.verify(verifier) && !isTokenExpired(signedJWT);
         } catch (Exception e) {
             return false;
         }
     }
 
-    public String getUsernameFromToken(String token) throws JOSEException, ParseException {
+    private boolean isTokenExpired(SignedJWT signedJWT) throws ParseException {
+        Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
+        return expiration.before(new Date());
+    }
+
+    public String getUsernameFromToken(String token) throws ParseException {
         SignedJWT signedJWT = SignedJWT.parse(token);
         return signedJWT.getJWTClaimsSet().getSubject();
     }

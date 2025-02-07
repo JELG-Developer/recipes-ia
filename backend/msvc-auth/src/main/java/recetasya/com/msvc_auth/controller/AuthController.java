@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import com.nimbusds.jose.JOSEException;
 
 import recetasya.com.msvc_auth.mapper.request.AuthRequest;
+import recetasya.com.msvc_auth.mapper.request.LogoutRequest;
 import recetasya.com.msvc_auth.mapper.request.RefreshTokenRequest;
 import recetasya.com.msvc_auth.mapper.response.AuthResponse;
 import recetasya.com.msvc_auth.service.AuthService;
@@ -31,6 +32,11 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshTokenRequest request) throws JOSEException, ParseException {
         return ResponseEntity.ok(authService.refresh(request));
+    }
+
+    @PostMapping("/logout")
+    public void logout(@RequestBody LogoutRequest request) {
+        authService.logout(request);
     }
 
 }
