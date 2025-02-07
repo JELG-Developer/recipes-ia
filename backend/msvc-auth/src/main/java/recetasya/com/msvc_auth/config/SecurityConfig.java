@@ -1,13 +1,12 @@
 package recetasya.com.msvc_auth.config;
 
-import java.util.List;
-import java.util.UUID;
-import java.time.Duration;
-
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -15,12 +14,15 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -37,6 +39,7 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -44,64 +47,56 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 @Configuration
 public class SecurityConfig {
 
-    private static final String CLIENT_ID = "msvc-gateway-server";
-    private static final String CLIENT_SECRET = "12345";
-    private static final String REDIRECT_URI = "http://127.0.0.1:9000/login/oauth2/code/" + CLIENT_ID;
-    private static final String AUTHORIZED_URI = "http://127.0.0.1:9000/authorized";
-    private static final String LOGOUT_URI = "http://127.0.0.1:9000/logout";
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    private final PasswordEncoder passwordEncoder;
-
-    public SecurityConfig(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    /**
-     * 🔹 Configura la seguridad del Authorization Server
-     */
     @Bean
     @Order(1)
-    @SuppressWarnings("removal")
-    SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
+            throws Exception {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class).oidc(Customizer.withDefaults());
-
-        http.exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(
-                        new LoginUrlAuthenticationEntryPoint("/login"),
-                        new MediaTypeRequestMatcher(MediaType.TEXT_HTML)))
-            .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+                .oidc(Customizer.withDefaults()) // Enable OpenID Connect 1.0
+                .and()
+                .formLogin(form -> form
+                    .loginPage("/login")  // Ruta personalizada de login
+                    .permitAll())
+                .logout(logout -> logout
+                    .logoutUrl("/logout") // Ruta personalizada de logout
+                    .permitAll())
+                .oauth2ResourceServer(resourceServer -> resourceServer
+                    .jwt(Customizer.withDefaults()));
 
         return http.build();
     }
 
-    /**
-     * 🔹 Configura la seguridad general
-     */
     @Bean
     @Order(2)
-    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
+            throws Exception {
+        http
+            .authorizeRequests(authz -> authz
+                .requestMatchers("/login", "/refreshToken", "/logout").permitAll() // Permitimos el acceso a estas rutas sin autenticación
+                .anyRequest().authenticated()) // Resto de las rutas requieren autenticación
             .csrf(csrf -> csrf.disable())
             .formLogin(Customizer.withDefaults());
 
         return http.build();
     }
 
-    /**
-     * 🔹 Configura el cliente OAuth2 (msvc-gateway-server)
-     */
     @Bean
     RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient gatewayClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId(CLIENT_ID)
-                .clientSecret(passwordEncoder.encode(CLIENT_SECRET))
+        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("gateway-app")
+                .clientSecret(passwordEncoder.encode("12345"))
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantTypes(grants -> grants.addAll(List.of(
-                        AuthorizationGrantType.AUTHORIZATION_CODE,
-                        AuthorizationGrantType.REFRESH_TOKEN)))
-                .redirectUris(uris -> uris.addAll(List.of(REDIRECT_URI, AUTHORIZED_URI)))
-                .postLogoutRedirectUri(LOGOUT_URI)
-                .scopes(scopes -> scopes.addAll(List.of(OidcScopes.OPENID, OidcScopes.PROFILE)))
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .redirectUri("http://127.0.0.1:8090/login/oauth2/code/client-app")
+                .redirectUri("http://127.0.0.1:8090/authorized")
+                .postLogoutRedirectUri("http://127.0.0.1:8090/logout")
+                .scope(OidcScopes.OPENID)
+                .scope(OidcScopes.PROFILE)
                 .tokenSettings(TokenSettings.builder()
                         .accessTokenTimeToLive(Duration.ofHours(2))
                         .refreshTokenTimeToLive(Duration.ofDays(1))
@@ -109,62 +104,57 @@ public class SecurityConfig {
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
                 .build();
 
-        return new InMemoryRegisteredClientRepository(gatewayClient);
+        return new InMemoryRegisteredClientRepository(oidcClient);
     }
 
-    /**
-     * 🔹 Configura claves RSA para firmar tokens JWT
-     */
     @Bean
     JWKSource<SecurityContext> jwkSource() {
         KeyPair keyPair = generateRsaKey();
-        RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                .privateKey((RSAPrivateKey) keyPair.getPrivate())
+        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+        RSAKey rsaKey = new RSAKey.Builder(publicKey)
+                .privateKey(privateKey)
                 .keyID(UUID.randomUUID().toString())
                 .build();
-        return new ImmutableJWKSet<>(new JWKSet(rsaKey));
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return new ImmutableJWKSet<>(jwkSet);
     }
 
-    /**
-     * 🔹 Genera clave RSA (2048 bits) para firmar tokens JWT
-     */
     private static KeyPair generateRsaKey() {
+        KeyPair keyPair;
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);
-            return keyPairGenerator.generateKeyPair();
+            keyPair = keyPairGenerator.generateKeyPair();
         } catch (Exception ex) {
-            throw new IllegalStateException("Error generando clave RSA", ex);
+            throw new IllegalStateException(ex);
         }
+        return keyPair;
     }
 
-    /**
-     * 🔹 Configura el `JwtDecoder` para validar tokens
-     */
     @Bean
     JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
 
-    /**
-     * 🔹 Configura el Authorization Server
-     */
     @Bean
     AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder().build();
     }
 
-    /**
-     * 🔹 Personaliza los tokens OAuth2 con roles y datos adicionales
-     */
     @Bean
     OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
         return context -> {
-            if (OAuth2TokenType.ACCESS_TOKEN.getValue().equals(context.getTokenType().getValue())) {
-                context.getClaims().claim("role", context.getPrincipal().getAuthorities().stream()
-                        .map(auth -> auth.getAuthority())
-                        .toList());
+            if (context.getTokenType().getValue() == OAuth2TokenType.ACCESS_TOKEN.getValue()) {
+                Authentication principal = context.getPrincipal();
+                context.getClaims()
+                        .claim("data", "data adicional en el token")
+                        .claim("role", principal.getAuthorities()
+                                .stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .collect(Collectors.toList()));
             }
         };
     }
 }
+

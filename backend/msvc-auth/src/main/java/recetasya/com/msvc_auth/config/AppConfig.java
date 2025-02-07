@@ -13,7 +13,7 @@ public class AppConfig {
     @Bean
     WebClient webClient(WebClient.Builder builder, ReactorLoadBalancerExchangeFilterFunction lbFunction) {
         return builder
-        .baseUrl("http://msvc-users")
+        .baseUrl("http://msvc-user")
         .filter(lbFunction)
         .build();
     }
@@ -22,5 +22,4 @@ public class AppConfig {
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
