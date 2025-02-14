@@ -64,7 +64,7 @@ public class UserService {
         user.setRoles(Collections.singleton(userRole));
         userRepository.save(user);
     
-        return new StandardResponse(200, "User created", user.getId());
+        return new StandardResponse(200, "User created");
     }
     
     public StandardResponse createAdmin(CreateUserRequest request) throws UserException {
@@ -87,7 +87,7 @@ public class UserService {
         user.setRoles(Collections.singleton(adminRole));
         userRepository.save(user);
     
-        return new StandardResponse(200, "Admin created", user.getId());
+        return new StandardResponse(200, "Admin created");
     }
 
     public UserResponse getByMail(FindMailRequest request) throws UserException {
@@ -100,12 +100,12 @@ public class UserService {
         User user = userRepository.findById(request.getId()).orElseThrow(() -> new UserException("User not found", 404));
         modelMapper.map(request, user);
         userRepository.save(user);
-        return new StandardResponse(200, "User updated", user.getId());
+        return new StandardResponse(200, "User updated");
     }
 
     public StandardResponse delete(FindIdRequest request) throws UserException {
         User user = userRepository.findById(request.getId()).orElseThrow(() -> new UserException("User not found", 404));
         userRepository.delete(user);
-        return new StandardResponse(200, "User deleted", user.getId());
+        return new StandardResponse(200, "User deleted");
     }
 }
