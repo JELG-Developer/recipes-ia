@@ -34,6 +34,7 @@ public class SecurityConfig {
     }
 
     // Configuración del Authorization Server
+    @SuppressWarnings("removal")
     @Bean
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
