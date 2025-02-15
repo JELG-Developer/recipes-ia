@@ -44,6 +44,7 @@ public class SecurityConfig {
 
     // Configuración del Resource Server y autenticación de usuarios
     @Bean
+    @SuppressWarnings("removal")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
