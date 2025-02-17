@@ -5,11 +5,11 @@ spring:
     gateway:
       routes:
         - id: msvc-auth
-          uri: http://localhost:9100
+          uri: lb://msvc-auth
           predicates:
             - Path=/api/auth/**
         - id: msvc-user
-          uri: http://localhost:8001
+          uri: lb://msvc-user
           predicates:
             - Path=/api/user/**
   security:
@@ -17,6 +17,14 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:9100
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Usuarios
+        url: http://msvc-user/v3/api-docs
+      - name: Autenticación
+        url: http://msvc-auth/v3/api-docs
 
 server:
   port: 9000
