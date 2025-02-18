@@ -90,12 +90,11 @@ public class SecurityConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addCorsMappings(@SuppressWarnings("null") CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://msvc-gateway")
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/v3/api-docs/**")
+                .allowedOrigins("http://localhost:9000")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .exposedHeaders("Authorization")
                 .allowCredentials(true);
     }
 }
