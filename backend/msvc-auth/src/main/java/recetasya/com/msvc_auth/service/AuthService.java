@@ -23,11 +23,11 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-    private final Set<String> revokedTokens = ConcurrentHashMap.newKeySet();
-    private final ConcurrentHashMap<String, Integer> loginAttempts = new ConcurrentHashMap<>();
+    public final Set<String> revokedTokens = ConcurrentHashMap.newKeySet();
+    public final ConcurrentHashMap<String, Integer> loginAttempts = new ConcurrentHashMap<>();
 
     @Value("${login.attempts.limit}")
-    private int maxAttempts;
+    public int maxAttempts;
 
     public AuthResponse authenticate(AuthRequest request) throws JOSEException {
         String email = request.getEmail();
