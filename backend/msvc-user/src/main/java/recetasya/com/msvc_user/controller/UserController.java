@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-
+import io.swagger.v3.oas.annotations.tags.Tag;
 import recetasya.com.msvc_user.mapper.request.*;
 import recetasya.com.msvc_user.mapper.response.*;
 import recetasya.com.msvc_user.service.UserService;
@@ -18,6 +18,7 @@ import recetasya.com.msvc_user.service.exception.UserException;
 
 @RestController
 @RequestMapping("/api/user")
+@Tag(name = "User Controller", description = "Manage user data")
 public class UserController {
 
     @Autowired

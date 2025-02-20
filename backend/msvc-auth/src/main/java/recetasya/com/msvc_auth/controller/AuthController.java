@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.text.ParseException;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,15 +19,13 @@ import recetasya.com.msvc_auth.mapper.response.AuthResponse;
 import recetasya.com.msvc_auth.mapper.response.StandardResponse;
 import recetasya.com.msvc_auth.service.AuthService;
 
-import lombok.RequiredArgsConstructor;
-
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
-@Tag(name = "Auth Controller", description = "Manejo de autenticación y emisión de tokens")
+@Tag(name = "Auth Controller", description = "Manage authentication and token issuance")
 public class AuthController {
 
-    private final AuthService authService;
+    @Autowired
+    private AuthService authService;
 
     @PostMapping("/login")
     @Operation(summary = "login")
