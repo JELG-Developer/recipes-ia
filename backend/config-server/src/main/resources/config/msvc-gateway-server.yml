@@ -1,0 +1,39 @@
+# Configuration for Gateway Server
+server:
+  port: 9000
+
+# Gateway Config
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: msvc-auth
+          uri: lb://msvc-auth
+          predicates:
+            - Path=/api/auth/**
+        - id: msvc-user
+          uri: lb://msvc-user
+          predicates:
+            - Path=/api/user/**
+
+# Security Config
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9100
+
+# Swagger Config
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Usuarios
+        url: /v3/api-docs/msvc-user
+      - name: Autenticación
+        url: /v3/api-docs/msvc-auth
+
+# Eureka Config
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka

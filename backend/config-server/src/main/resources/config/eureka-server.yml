@@ -1,0 +1,9 @@
+# This is the configuration file for the Eureka server.
+# The Eureka server is a service registry that allows microservices to register themselves and discover other services.
+server:
+  port: 8761
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
