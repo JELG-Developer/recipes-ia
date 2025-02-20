@@ -43,9 +43,9 @@ public class UserController {
     @PostMapping("/find/mail")
     @Operation(summary = "find user by mail")
     @ApiResponse(responseCode = "200", description = "Find user by mail",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FindMailRequest.class)))
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = FindEmailRequest.class)))
     @ApiResponse(responseCode = "404", description = "User not found")
-    public ResponseEntity <UserResponse> findUserByMail(@RequestBody FindMailRequest request) throws UserException{        
+    public ResponseEntity <EmailResponse> findUserByMail(@RequestBody FindEmailRequest request) throws UserException{        
         return ResponseEntity.ok(userService.getByMail(request));
     }
 

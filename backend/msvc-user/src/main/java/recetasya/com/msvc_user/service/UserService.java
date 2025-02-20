@@ -54,12 +54,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
     
         Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseGet(() -> {
-                    Role newRole = new Role();
-                    newRole.setName("ROLE_USER");
-                    newRole.setDescription("Default role for new users");
-                    return roleRepository.save(newRole);
-                });
+                .orElseThrow(() -> new UserException("Role not found", 404));
     
         user.setRoles(Collections.singleton(userRole));
         userRepository.save(user);
@@ -77,12 +72,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
     
         Role adminRole = roleRepository.findByName("ROLE_ADMIN")
-                .orElseGet(() -> {
-                    Role newRole = new Role();
-                    newRole.setName("ROLE_ADMIN");
-                    newRole.setDescription("Default role for new admins");
-                    return roleRepository.save(newRole);
-                });
+                .orElseThrow(() -> new UserException("Role not found", 404));
     
         user.setRoles(Collections.singleton(adminRole));
         userRepository.save(user);
@@ -90,10 +80,10 @@ public class UserService {
         return new StandardResponse(200, "Admin created");
     }
 
-    public UserResponse getByMail(FindMailRequest request) throws UserException {
+    public EmailResponse getByMail(FindEmailRequest request) throws UserException {
         log.info("Getting user by username");
-        User user = userRepository.findByEmail(request.getMail()).orElseThrow(() -> new UserException("User not found", 404));
-        return UserResponse.fromUser(user);
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new UserException("User not found", 404));
+        return EmailResponse.fromUser(user);
     }
 
     public StandardResponse update(UpdateUserRequest request) throws UserException {
